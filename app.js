@@ -17,7 +17,7 @@ app.get("/", (req, res) => {
 });
 
 // Register - URL: http://localhost:3000/register
-// {"first_name": "Waltz", "last_name": "Udo", "email": "waltz@info.com", "password": "mypassword"}
+// { "first_name": "Waltz", "last_name": "Udo", "email": "waltz@info.com", "password": "mypassword" }
     
 app.post("/register", async (req, res) => {
     try {
@@ -65,10 +65,39 @@ app.post("/register", async (req, res) => {
     }
 });
 
-// Login
-app.post("/login", (req, res) => {
-    console.log(req.body);
-    res.status(200).send("OK");
+// Login - URL: http://localhost:3000/login
+// { "email": "waltz@info.com", "password": "mypassword" }
+app.post("/login", async (req, res) => {
+    try {
+        // Get user input
+        const { email, password } = req.body;
+
+        // Validate user input
+        if (!(email && password)) {
+            return res.status(400).send("All input is required");
+        }
+        
+        // Validate if user exist in our database
+        const user = await User.findOne({ email });
+
+        if (user && (await bcrypt.compare(password, user.password))) {
+            // Create token
+            const token = jwt.sign(
+                { user_id: user._id, email },
+                process.env.TOKEN_KEY,
+                { expiresIn: "2h" }
+            );
+            // save user token
+            user.token = token;
+            // user
+            return res.status(200).json(user);
+        }
+        res.status(400).send("Invalid Credentials");
+    } catch (error) {
+        console.log(error);
+        res.status(500).send(error.message);
+    }
+
 });
 
 module.exports = app;
