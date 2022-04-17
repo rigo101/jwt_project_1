@@ -2,10 +2,15 @@ require("dotenv").config();
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 require("./config/database").connect();
+const auth = require("./middleware/auth");
 const express = require("express");
 const app = express();
 
 app.use(express.json()); // JSON middleware - it fullfils req.body with JS object
+app.use((req, res, next) => {
+    console.log("Uzi jott");
+    next();
+});
 
 // Registration and Login ROUTES/Endpoints
 // importing user context
@@ -14,6 +19,10 @@ const User = require("./model/user");
 // to test if server is runnig, port is OK
 app.get("/", (req, res) => {
     res.status(200).send("OK");
+});
+
+app.post("/welcome", auth, (req, res) => {
+    res.status(200).send("Welcome 🙌 ");
 });
 
 // Register - URL: http://localhost:3000/register
@@ -52,7 +61,7 @@ app.post("/register", async (req, res) => {
         const token = jwt.sign(
             { user_id: user._id, email },
             process.env.TOKEN_KEY,
-            { expiresIn: "2h" }   
+            { expiresIn: "10s" }   
         );
         // save user token
         user.token = token;
