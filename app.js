@@ -47,7 +47,8 @@ app.post("/register", async (req, res) => {
         }
 
         //Encrypt user password
-        const encryptedPassword = await bcrypt.hash(password, 10);
+        const salt = await bcrypt.genSalt(10);
+        const encryptedPassword = await bcrypt.hash(password, salt);
 
         // Create user in our database
         const user = await User.create({
@@ -64,6 +65,7 @@ app.post("/register", async (req, res) => {
             { expiresIn: "10s" }   
         );
         // save user token
+        // res.header('auth-token', token);
         user.token = token;
     
         // return new user
